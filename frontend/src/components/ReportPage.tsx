@@ -5,7 +5,7 @@ const ReportPage: React.FC = () => {
   const { keycloak, initialized } = useKeycloak();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [report, setReport] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const downloadReport = async () => {
     if (!keycloak?.token) {
@@ -16,16 +16,18 @@ const ReportPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      setReport(null);
+      setSuccess(null);
 
       const response = await fetch(`${process.env.REACT_APP_API_URL}/reports`, {
-        credentials: "include",
         headers: {
           'Authorization': `Bearer ${keycloak.token}`
         }
-      }).then(r => r.json()).then(report => setReport(report));
+      });
+      
+      setSuccess(await response.text());
+      
     } catch (err) {
-      setError('Недостаточно прав на выполнение действий или произошла ошибка. Обратитесь к администратору.');
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -68,9 +70,9 @@ const ReportPage: React.FC = () => {
             {error}
           </div>
         )}
-        {report && (
-          <div className="mt-4 p-4 bg-green-100 text-green-700 rounded">
-            {report}
+        {success && (
+          <div className="mt-4 p-4 bg-green-100 text-red-700 rounded">
+            {success}
           </div>
         )}
       </div>
